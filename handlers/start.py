@@ -15,7 +15,9 @@ HELP_TEXT = (
     "/start — open the main menu\n"
     "/help — show this message\n"
     "/cancel — cancel whatever you're currently typing for the bot\n"
-    "/admin — open the admin panel (admins only)"
+    "/admin — open the admin panel (admins only)\n"
+    "/setstorage &lt;id&gt; — directly set the storage channel (admins only)\n"
+    "/checkstorage — diagnose why the storage channel isn't working (admins only)"
 )
 
 ABOUT_TEXT = (
