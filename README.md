@@ -62,8 +62,8 @@ SSH into your VPS, then:
 sudo apt update && sudo apt install -y git
 
 # 2. Clone your copy of this repository
-git clone https://github.com/abdullahkhalidlaptop/TG-Files-Bot.git
-cd TG-Files-Bot
+git clone https://github.com/YOUR_USERNAME/telegram-filestore-bot.git
+cd telegram-filestore-bot
 
 # 3. Run the installer (creates a virtualenv, installs dependencies, makes .env)
 chmod +x install.sh
@@ -151,7 +151,13 @@ Both options restart the bot within seconds of a crash and bring it back after a
 ## 9. First-time setup inside the bot (all live, no restarts needed)
 
 1. Message your bot `/admin` (you're the owner, so this works immediately).
-2. **Settings → Storage Channel** → forward any message from your private storage channel (from Step 4). The bot auto-detects the channel ID.
+2. Set your storage channel the reliable way — as a direct command that actively checks the bot's access, instead of the button flow (which needs a "pending" state that's easy to lose):
+   ```
+   /setstorage -1001234567890
+   ```
+   If it fails, the bot tells you exactly why (wrong ID format, bot not in the channel, or bot in the channel but not an admin). You can re-check anytime with `/checkstorage`.
+
+   The button flow (**Settings → Storage Channel**) also works — you can either send the numeric ID or forward a message from the channel — but `/setstorage` is the more foolproof option since it can't lose track of what you're doing.
 3. *(Optional)* **Force-Sub Channels → Add Force-Sub Channel** → send:
    ```
    -1001234567890 | My Channel | https://t.me/mychannel
@@ -231,7 +237,7 @@ cp filestore.db filestore.db.backup
 ## Troubleshooting
 
 - **Bot doesn't respond at all** → check `journalctl -u filestore-bot -f` for errors; confirm `BOT_TOKEN` in `.env` is correct.
-- **"Storage channel is not configured yet"** → run `/admin` → Settings → Storage Channel and forward a message from your channel.
+- **"Storage channel is not configured yet" / storage channel won't save** → run `/setstorage -1001234567890`, then `/checkstorage` to see exactly what's wrong. Common causes: the ID is missing its `-100` prefix, the bot was never added to the channel, or it's a member but not an admin there.
 - **Force-sub check always fails** → make sure the bot is an **admin** in that channel (not just a member).
 - **File upload fails with a permission error** → the bot needs "Post Messages" permission in the storage channel.
 - **Owner locked out** → `OWNER_ID` in `.env` is always treated as admin regardless of the database, so double-check it matches your real Telegram user ID from @userinfobot.

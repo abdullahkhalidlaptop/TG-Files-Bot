@@ -7,10 +7,10 @@
 set -e
 
 echo "==> Updating package lists..."
-apt update -y
+sudo apt update -y
 
 echo "==> Installing Python 3, venv and pip..."
-apt install -y python3 python3-venv python3-pip
+sudo apt install -y python3 python3-venv python3-pip
 
 echo "==> Creating virtual environment..."
 python3 -m venv venv

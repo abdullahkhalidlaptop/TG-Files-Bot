@@ -30,6 +30,7 @@ from handlers.start import start, help_command, cancel_command, admin_command
 from handlers.callbacks import button_router
 from handlers.text_input import text_handler
 from handlers.upload import handle_file_upload
+from handlers.admin_commands import setstorage_command, checkstorage_command
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -50,6 +51,8 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("cancel", cancel_command))
     app.add_handler(CommandHandler("admin", admin_command))
+    app.add_handler(CommandHandler("setstorage", setstorage_command))
+    app.add_handler(CommandHandler("checkstorage", checkstorage_command))
     app.add_handler(CallbackQueryHandler(button_router))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
     app.add_handler(
