@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 
 import database as db
 import keyboards as kb
+from handlers.commands_setup import apply_admin_commands
 
 
 def _forwarded_channel_id(message):
@@ -96,6 +97,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 return
             uid = int(text)
             db.add_admin(uid, added_by=user.id)
+            await apply_admin_commands(context.bot, uid)
             await message.reply_text(f"✅ User <code>{uid}</code> added as admin!", parse_mode="HTML")
 
         elif state == "AWAITING_ADD_FORCESUB":

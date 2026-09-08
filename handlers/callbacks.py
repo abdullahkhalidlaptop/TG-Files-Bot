@@ -5,6 +5,7 @@ import database as db
 import keyboards as kb
 from handlers.delivery import is_user_subscribed, deliver_file
 from handlers.start import HELP_TEXT, ABOUT_TEXT
+from handlers.commands_setup import clear_admin_commands
 
 
 async def _require_admin(query) -> bool:
@@ -182,6 +183,7 @@ async def button_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
         target_id = int(data.split("_", 1)[1])
         removed = db.remove_admin(target_id)
         if removed:
+            await clear_admin_commands(context.bot, target_id)
             await query.answer(f"Removed admin {target_id}", show_alert=True)
         else:
             await query.answer("The owner cannot be removed.", show_alert=True)
