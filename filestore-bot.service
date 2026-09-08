@@ -1,0 +1,21 @@
+[Unit]
+Description=Telegram File Store Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Edit these two paths to match where you deployed the project on your VPS
+WorkingDirectory=/home/YOUR_LINUX_USER/telegram-filestore-bot
+ExecStart=/home/YOUR_LINUX_USER/telegram-filestore-bot/venv/bin/python bot.py
+Restart=always
+RestartSec=5
+User=YOUR_LINUX_USER
+Environment=PYTHONUNBUFFERED=1
+
+# Basic hardening (safe defaults for a single-purpose bot process)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+.env
+*.db
+*.db-journal
+bot.log
+*.log
+__pycache__/
+*.pyc
+venv/
+.venv/
+users_export.txt
+logs/
+node_modules/
