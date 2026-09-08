@@ -31,6 +31,7 @@ from handlers.callbacks import button_router
 from handlers.text_input import text_handler
 from handlers.upload import handle_file_upload
 from handlers.admin_commands import setstorage_command, checkstorage_command
+from handlers.commands_setup import apply_default_commands, sync_all_admin_commands
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -44,8 +45,15 @@ async def on_error(update: object, context) -> None:
     logger.error("Unhandled exception while processing update %s", update, exc_info=context.error)
 
 
+async def post_init(app: Application) -> None:
+    """Runs once after the bot connects, before polling starts."""
+    await apply_default_commands(app.bot)
+    await sync_all_admin_commands(app.bot, db.list_admins())
+    logger.info("Command menus registered.")
+
+
 def build_app() -> Application:
-    app = Application.builder().token(config.BOT_TOKEN).build()
+    app = Application.builder().token(config.BOT_TOKEN).post_init(post_init).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))

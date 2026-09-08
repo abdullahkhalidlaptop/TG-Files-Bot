@@ -5,12 +5,15 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-# Edit these two paths to match where you deployed the project on your VPS
-WorkingDirectory=/home/YOUR_LINUX_USER/telegram-filestore-bot
-ExecStart=/home/YOUR_LINUX_USER/telegram-filestore-bot/venv/bin/python bot.py
+# Edit this path to match where you cloned the project on your VPS
+WorkingDirectory=/root/telegram-filestore-bot
+ExecStart=/root/telegram-filestore-bot/venv/bin/python bot.py
 Restart=always
 RestartSec=5
-User=YOUR_LINUX_USER
+# Matches the root-shell, no-sudo workflow this project's README uses.
+# Change to a non-root user only if you set one up yourself (and update
+# WorkingDirectory/ExecStart above to that user's home directory).
+User=root
 Environment=PYTHONUNBUFFERED=1
 
 # Basic hardening (safe defaults for a single-purpose bot process)

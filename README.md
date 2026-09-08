@@ -55,11 +55,11 @@ If you want users to join a channel before they can download files:
 
 ## 6. Deploy to your VPS
 
-SSH into your VPS, then:
+SSH into your VPS as **root** (this whole guide assumes a root shell — no `sudo` is used anywhere; most fresh VPS instances give you root by default, otherwise switch to it first with `su -`):
 
 ```bash
 # 1. Install git if you don't have it
-sudo apt update && sudo apt install -y git
+apt update && apt install -y git
 
 # 2. Clone your copy of this repository
 git clone https://github.com/YOUR_USERNAME/telegram-filestore-bot.git
@@ -87,7 +87,7 @@ source venv/bin/activate
 python3 bot.py
 ```
 
-Open Telegram, message your bot with `/start`. You should see the welcome menu. Press `Ctrl+C` to stop the test run once it works.
+Open Telegram, message your bot with `/start`. You should see the welcome menu — and a `/` command picker with `start`, `help`, and `cancel` already registered (admins additionally get `admin`, `setstorage`, and `checkstorage` in their own menu — see "Command menus" below). Press `Ctrl+C` to stop the test run once it works.
 
 ## 8. Run it 24/7 (pick ONE of the two options below)
 
@@ -96,10 +96,10 @@ Open Telegram, message your bot with `/start`. You should see the welcome menu. 
 [PM2](https://pm2.keymetrics.dev/) isn't Node-only — it can supervise any executable, including this Python bot, and gives you the same `pm2 list` / `pm2 logs` / `pm2 restart` workflow you'd use for a Node app.
 
 ```bash
-# 1. Install Node.js + PM2 (skip if you already have them)
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt install -y nodejs
-sudo npm install -g pm2
+# 1. Install Node.js + PM2 (skip if you already have them) — run as root, no sudo
+curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+apt install -y nodejs
+npm install -g pm2
 
 # 2. Make sure the venv + dependencies exist (install.sh already did this)
 mkdir -p logs
@@ -109,7 +109,7 @@ pm2 start ecosystem.config.js
 
 # 4. Make PM2 itself survive a reboot
 pm2 save
-pm2 startup            # run the command it prints (once, as root)
+pm2 startup            # run the command it prints (you're already root, so no sudo needed)
 ```
 
 Everyday PM2 commands:
@@ -124,25 +124,26 @@ To update the code later: `git pull`, then `pm2 restart filestore-bot`.
 ### Option B — systemd (built into every Linux distro, no extra install)
 
 ```bash
-# Edit the service file to match your actual username and path
+# Edit the service file to confirm the paths match where you cloned the repo
 nano filestore-bot.service
-# Replace every "YOUR_LINUX_USER" with your actual VPS username (check with: whoami)
-# and confirm the WorkingDirectory/ExecStart paths match where you cloned the repo.
+# Update WorkingDirectory and ExecStart to your actual clone path
+# (the default User=root matches the no-sudo, root-shell workflow this guide uses —
+# change it only if you deliberately want to run the bot as a different user).
 
-# Install the service
-sudo cp filestore-bot.service /etc/systemd/system/filestore-bot.service
-sudo systemctl daemon-reload
-sudo systemctl enable filestore-bot     # start automatically on server reboot
-sudo systemctl start filestore-bot      # start it now
+# Install the service (already root, so no sudo)
+cp filestore-bot.service /etc/systemd/system/filestore-bot.service
+systemctl daemon-reload
+systemctl enable filestore-bot     # start automatically on server reboot
+systemctl start filestore-bot      # start it now
 
 # Check it's running
-sudo systemctl status filestore-bot
+systemctl status filestore-bot
 
 # View live logs
 journalctl -u filestore-bot -f
 ```
 
-To update the code later: `git pull`, then `sudo systemctl restart filestore-bot`.
+To update the code later: `git pull`, then `systemctl restart filestore-bot`.
 
 Both options restart the bot within seconds of a crash and bring it back after a server reboot — use whichever tooling you're more comfortable managing. Don't run both at once (they'd fight over the same bot token).
 
@@ -171,6 +172,15 @@ That's it — send the bot a file and it will hand you a shareable link immediat
 
 ---
 
+## Command menus
+
+The bot registers its slash commands with Telegram itself (via `set_my_commands`), so they show up in the native `/` picker in the chat, not just as things the bot happens to respond to:
+
+- **Everyone** sees: `/start`, `/help`, `/cancel`
+- **Admins** additionally see: `/admin`, `/setstorage`, `/checkstorage` — but only in their own chat with the bot (other users never see admin commands in their picker)
+
+This updates automatically: the moment someone is added as an admin (via **Admins → Add Admin** or by matching `OWNER_ID`), their command menu is refreshed; removing an admin drops them back to the public list. No restart needed.
+
 ## Commands
 
 | Command | Description |
@@ -179,6 +189,8 @@ That's it — send the bot a file and it will hand you a shareable link immediat
 | `/help` | Show usage instructions |
 | `/admin` | Open the admin panel (admins only) |
 | `/cancel` | Cancel whatever text input the bot is currently waiting for |
+| `/setstorage <channel_id>` | Directly set the storage channel, with a live permission check (admins only) |
+| `/checkstorage` | Diagnose why the configured storage channel isn't working (admins only) |
 
 ## Admin Panel Map
 
@@ -214,6 +226,7 @@ telegram-filestore-bot/
 ├── keyboards.py             # all inline keyboard layouts
 ├── handlers/
 │   ├── start.py             # /start, /help, /cancel, /admin
+│   ├── admin_commands.py    # /setstorage, /checkstorage (state-independent fallbacks)
 │   ├── callbacks.py         # every inline-button action
 │   ├── text_input.py        # admin "send me a value" flows
 │   ├── upload.py             # incoming file → storage channel
